@@ -1,0 +1,226 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+struct Estudiante {
+    string nombre;
+    int anio;
+    double gpa;
+    double presupuesto;
+
+    Estudiante() : nombre("NN"), anio(0), gpa(0), presupuesto(0) {}
+    Estudiante(string n, int a, double g, double p)
+        : nombre(n), anio(a), gpa(g), presupuesto(p) {}
+
+    double indice() const {
+        double dif = gpa - 3;
+        if (dif < 0) dif = -dif;
+        return dif * presupuesto;
+    }
+};
+
+bool porAnio(const Estudiante& a, const Estudiante& b)        { return a.anio < b.anio; }
+bool porGpa(const Estudiante& a, const Estudiante& b)         { return a.gpa < b.gpa; }
+bool porPresupuesto(const Estudiante& a, const Estudiante& b) { return a.presupuesto < b.presupuesto; }
+bool porIndice(const Estudiante& a, const Estudiante& b)      { return a.indice() < b.indice(); }
+
+bool insertar(vector<Estudiante>& v, Estudiante e, int indice = -1) {
+    if (indice == -1) {
+        v.push_back(e);
+        return true;
+    }
+    if (indice < 0 || indice > (int)v.size()) return false;
+    v.insert(v.begin() + indice, e);
+    return true;
+}
+
+bool eliminar(vector<Estudiante>& v, int indice = -1) {
+    if (v.empty()) return false;
+    if (indice == -1) {
+        v.pop_back();
+        return true;
+    }
+    if (indice < 0 || indice >= (int)v.size()) return false;
+    v.erase(v.begin() + indice);
+    return true;
+}
+
+bool actualizar(vector<Estudiante>& v, int indice, Estudiante nuevo) {
+    if (indice < 0 || indice >= (int)v.size()) return false;
+    v[indice] = nuevo;
+    return true;
+}
+
+void ordenar(vector<Estudiante>& v, int criterio) {
+    if (criterio == 1) sort(v.begin(), v.end(), porAnio);
+    else if (criterio == 2) sort(v.begin(), v.end(), porGpa);
+    else if (criterio == 3) sort(v.begin(), v.end(), porPresupuesto);
+    else if (criterio == 4) sort(v.begin(), v.end(), porIndice);
+}
+
+void imprimir(const vector<Estudiante>& v) {
+    cout << "--- Estudiantes (" << v.size() << ") ---\n";
+    if (v.empty()) {
+        cout << "(vacio)\n";
+        return;
+    }
+    int i = 0;
+    for (vector<Estudiante>::const_iterator it = v.begin(); it != v.end(); ++it) {
+        cout << i << ") " << it->nombre << " | anio: " << it->anio
+             << " | GPA: " << it->gpa << " | presupuesto: " << it->presupuesto
+             << " | indice: " << it->indice() << "\n";
+        i++;
+    }
+}
+
+Estudiante leerEstudiante() {
+    Estudiante e;
+    cout << "Nombre: ";
+    cin >> e.nombre;
+    cout << "Anio de nacimiento: ";
+    cin >> e.anio;
+    cout << "GPA: ";
+    cin >> e.gpa;
+    cout << "Presupuesto: ";
+    cin >> e.presupuesto;
+    return e;
+}
+
+void menu() {
+    vector<Estudiante> estudiantes;
+    int opcion = -1;
+
+    while (opcion != 0) {
+        cout << "\n1. Insertar\n2. Eliminar\n3. Actualizar\n4. Ordenar\n5. Imprimir\n0. Salir\nOpcion: ";
+        cin >> opcion;
+        if (!cin) break;
+
+        if (opcion == 1) {
+            int donde, tipo, idx = -1;
+            cout << "1. Al final  2. En un indice: ";
+            cin >> donde;
+            if (donde == 2) {
+                cout << "Indice: ";
+                cin >> idx;
+            }
+            cout << "1. Por defecto  2. Con datos: ";
+            cin >> tipo;
+            Estudiante e = (tipo == 1) ? Estudiante() : leerEstudiante();
+            if (insertar(estudiantes, e, idx)) cout << "Insertado.\n";
+            else cout << "Indice invalido.\n";
+        }
+        else if (opcion == 2) {
+            if (estudiantes.empty()) {
+                cout << "El vector esta vacio, no se elimina nada.\n";
+            } else {
+                int donde, idx = -1;
+                cout << "1. El ultimo  2. Por indice: ";
+                cin >> donde;
+                if (donde == 2) {
+                    cout << "Indice: ";
+                    cin >> idx;
+                }
+                if (eliminar(estudiantes, idx)) cout << "Eliminado.\n";
+                else cout << "Indice invalido.\n";
+            }
+        }
+        else if (opcion == 3) {
+            int idx;
+            cout << "Indice a actualizar: ";
+            cin >> idx;
+            if (idx < 0 || idx >= (int)estudiantes.size()) {
+                cout << "Indice invalido.\n";
+            } else {
+                actualizar(estudiantes, idx, leerEstudiante());
+                cout << "Actualizado.\n";
+            }
+        }
+        else if (opcion == 4) {
+            int c;
+            cout << "Ordenar por: 1.Anio 2.GPA 3.Presupuesto 4.Indice universidad: ";
+            cin >> c;
+            ordenar(estudiantes, c);
+            cout << "Ordenado.\n";
+        }
+        else if (opcion == 5) {
+            imprimir(estudiantes);
+        }
+    }
+}
+
+vector<Estudiante> datosBase() {
+    vector<Estudiante> v;
+    v.push_back(Estudiante("Ana", 2004, 3.8, 500));
+    v.push_back(Estudiante("Luis", 2001, 2.0, 300));
+    v.push_back(Estudiante("Rosa", 2003, 3.0, 900));
+    v.push_back(Estudiante("Pedro", 2002, 4.0, 100));
+    return v;
+}
+
+void prueba(string titulo, string entrada, string esperado) {
+    cout << "\n=== " << titulo << " ===\n";
+    cout << "Entrada:  " << entrada << "\n";
+    cout << "Esperado: " << esperado << "\n";
+}
+
+void pruebas() {
+    vector<Estudiante> v;
+
+    prueba("Insertar sin datos", "vector vacio, insertar Estudiante() al final", "1 elemento: NN 0 0 0");
+    insertar(v, Estudiante());
+    imprimir(v);
+
+    v = datosBase();
+    prueba("Insertar con datos", "base + (Maria,2005,3.5,700) en indice 1", "Ana, Maria, Luis, Rosa, Pedro");
+    insertar(v, Estudiante("Maria", 2005, 3.5, 700), 1);
+    imprimir(v);
+
+    v = datosBase();
+    prueba("Eliminar ultimo", "base, eliminar ultimo", "Ana, Luis, Rosa");
+    eliminar(v);
+    imprimir(v);
+
+    v = datosBase();
+    prueba("Eliminar por indice", "base, eliminar indice 1", "Ana, Rosa, Pedro");
+    eliminar(v, 1);
+    imprimir(v);
+
+    v.clear();
+    prueba("Eliminar con vector vacio", "vector vacio, eliminar ultimo", "no se elimina (false) y sigue vacio");
+    cout << "eliminar devolvio: " << eliminar(v) << " (0 = false)\n";
+    imprimir(v);
+
+    v = datosBase();
+    prueba("Actualizar", "base, indice 2 -> (RosaQ,2000,3.9,950)", "indice 2 = RosaQ 2000 3.9 950");
+    actualizar(v, 2, Estudiante("RosaQ", 2000, 3.9, 950));
+    imprimir(v);
+
+    v = datosBase();
+    prueba("Ordenar por anio", "base, criterio 1", "Luis, Pedro, Rosa, Ana");
+    ordenar(v, 1);
+    imprimir(v);
+
+    v = datosBase();
+    prueba("Ordenar por GPA", "base, criterio 2", "Luis, Rosa, Ana, Pedro");
+    ordenar(v, 2);
+    imprimir(v);
+
+    v = datosBase();
+    prueba("Ordenar por presupuesto", "base, criterio 3", "Pedro, Luis, Ana, Rosa");
+    ordenar(v, 3);
+    imprimir(v);
+
+    v = datosBase();
+    prueba("Ordenar por indice universidad", "base, criterio 4", "Rosa(0), Pedro(100), Luis(300), Ana(400)");
+    ordenar(v, 4);
+    imprimir(v);
+}
+
+int main(int argc, char* argv[]) {
+    if (argc > 1 && string(argv[1]) == "--pruebas") pruebas();
+    else menu();
+    return 0;
+}
